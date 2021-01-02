@@ -11,13 +11,7 @@ function formattoseconds($time)
         $iTemp %= 3600;
     }
 
-    $sHours = '';
-
-    if ($iHours < 10) {
-        $sHours = '0'.$iHours;
-    } else {
-        $sHours = $iHours;
-    }
+    $sHours = $iHours;
 
     $iMinutes = 0;
 
@@ -28,27 +22,25 @@ function formattoseconds($time)
 
     $sMinutes = '';
 
-    if ($iMinutes < 10) {
-        $sMinutes = '0'.$iMinutes;
-    } else {
-        $sMinutes = $iMinutes;
-    }
+    $sMinutes = $iMinutes;
 
     $fSeconds = (($iTemp) + $time - floor($time));
 
-    $sSeconds = '';
+    $sSeconds = number_format($fSeconds, 3);
 
-    if ($fSeconds < 10) {
-        $sSeconds = '0'.number_format($fSeconds, 3);
-    } else {
-        $sSeconds = number_format($fSeconds, 3);
-    }
-
-    if ($iHours > 0) {
+    if ($iHours > 0) 
+	{
         $newtime = $sHours.':'.$sMinutes.':'.$sSeconds.'h';
-    } elseif ($iMinutes > 0) {
+    } 
+	elseif ($iMinutes > 0) 
+	{
+		if($sSeconds < 10)		
+			$sSeconds = '0'.$sSeconds;
+		if($sMinutes < 10)		
+			$sMinutes = '0'.$sMinutes;
         $newtime = $sMinutes.':'.$sSeconds.'m';
-    } else {
+    } 
+	else {
         $newtime = number_format($fSeconds, 3).'s';
     }
 

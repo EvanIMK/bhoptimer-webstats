@@ -74,7 +74,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
     <!-- bootstrap itself -->
     <script async src="assets/js/bootstrap.min.js"></script>
     <script async src="assets/js/ie10-viewport-bug-workaround.js"></script>
-    <script src="assets/js/searchbarplaceholder.js"></script>
+    <script async src="assets/js/searchbarplaceholder.js"></script>
 
     <!-- Bootstrap core CSS | can't late-load -->
     <link async rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
@@ -128,7 +128,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                     <select name="map" class="form-control" required>
                         <option value="" selected="selected">None</option>
                         <?php
-                        $result = mysqli_query($connection, 'SELECT DISTINCT map FROM '.MYSQL_PREFIX.'mapzones ORDER BY map ASC;');
+                        $result = mysqli_query($connection, 'SELECT DISTINCT map FROM '.MYSQL_PREFIX.'playertimes ORDER BY map ASC;');
 
                         if ($result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
@@ -183,15 +183,14 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         <div class="input-group-btn">
                             <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Search by... <span class="caret"></span></button>
                                     <ul class="dropdown-menu">
-                                        <!-- this is commented out as it's kind of unnecessary
-                                            <li onclick="steamidsearchtype(0)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="0" />Name</label></li> -->
+                                        <li onclick="steamidsearchtype(0)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="0" />Player Name</label></li> 
                                         <li onclick="steamidsearchtype(1)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="1" />SteamID</label></li>
                                         <li onclick="steamidsearchtype(2)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="2" />SteamID3</label></li>
                                         <li onclick="steamidsearchtype(3)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="3" />SteamID64</label></li>
                                         <li onclick="steamidsearchtype(4)"><label class="btn btn-default form-control"><input class="srchhide" type="radio" name="stype" value="4" />Steamcommunity.com Profile URL</label></li>
                                     </ul>
                         </div>                                
-                                <input type="text" name="username" class="form-control username-input" aria-label="..." placeholder="Name">
+                                <input type="text" name="username" class="form-control username-input" aria-label="..." placeholder="Player Name">
                         <div class="input-group-btn">
                             <button type="submit" class="btn btn-primary">Search</button>
                         </div>
@@ -209,11 +208,14 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 <br />
             </div>
             <?php
-        } else {
+        } 
+		else 
+		{
             $results = false;
             $stmt = false;
 
-            if ($rr) { //recent records
+            if ($rr) 
+			{ //recent records
                 if (USES_RANKINGS == '0') {
                     $stmt = $connection->prepare('SELECT p.map, u.name, p.style, p.time, p.jumps, p.strafes, p.sync, u.auth, p.date, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN (SELECT MIN(time) time, map, style, track FROM '.MYSQL_PREFIX.'playertimes GROUP by map, style, track) t JOIN '.MYSQL_PREFIX.'users u ON p.time = t.time AND p.auth = u.auth AND p.map = t.map AND p.style = t.style AND p.track = t.track ORDER BY date DESC LIMIT '.RECORD_LIMIT_LATEST.' OFFSET 0;');
                 } else {
@@ -233,7 +235,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                     $stmt->bind_result($map, $name, $style, $time, $jumps, $strafes, $sync, $auth, $date, $track);
                 }
 
-                if ($rows > 0) {
+                if ($rows > 0) {  
                     $records = 0;
 
                     $first = true;
@@ -252,7 +254,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                                     <th>Sync</th>
                                     <th>Points</th>
                                     <th>SteamID</th>
-                                    <th>Date <small>(YYYY-MM-DD)</small></th>
+                                    <th>Date <small>(DD-MM-YYYY)</small></th>
                                 </thead>
                             <?php
 
@@ -261,7 +263,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 
     					<tr>
                             <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
-        					<td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
+        					<td><?php echo '<a href="index.php?stype=2&username=' . '[U:1:' . $auth . ']' . '">'.$name.'</a>'; ?></td>
+							
         					<td><?php echo $styles[$style].' / '.trackname($track);?></td>
         					<td><?php echo formattoseconds($time); ?></td>
         					<td><?php echo $jumps; ?></td>
@@ -275,13 +278,13 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                                 } ?>
                             </td>
                             <td><?php
-                            $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                            $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
 
         					<td><?php if ($date[4] == '-') {
                             echo $date;
                         } else {
-                            echo date('Y-m-d H:i:s', $date);
+                            echo date('d-m-Y H:i:s', $date);
                         } ?></td>
                         </tr>
                         
@@ -291,7 +294,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
                     }
                 }
-            } elseif (!$username && !$top && !$stype) { //map dropdown
+            } 
+			elseif (!$username && !$top && !$stype) 
+			{ //map dropdown
 
                 if (USES_RANKINGS == '0') { 
                     $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.time, p.jumps, p.strafes, p.sync, p.date FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE p.map = ? AND p.style = ? AND p.track = ? ORDER BY time ASC;'); 
@@ -316,7 +321,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 
                     $rank = 1;
 
-                    while ($row = $stmt->fetch()) {
+                    while ($row = $stmt->fetch()) 
+					{
                         if ($first) {
                             ?>
                             <p><span class="mark"><?php echo $styles[$style]; ?></span> Records (<?php echo number_format($rows); ?>) for <i><?php echo removeworkshop($map); ?></i> (<?php echo trackname($track); ?>):</p>
@@ -331,7 +337,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <th>Strafes</th>
                             <th>Sync</th>
     						<th>Points</th>
-                            <th>Date <small>(YYYY-MM-DD)</small></th></thead>
+                            <th>Date <small>(DD-MM-YYYY)</small></th></thead>
 
     						<?php
 
@@ -375,9 +381,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         } ?></td>
     					<td><?php echo $id; ?></td>
     					<td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
-    					<td><?php echo '<a href="index.php?stype=2&username='.$auth.'">'.$name.'</a>'; ?></td>
+    					<td><?php echo '<a href="index.php?stype=2&username='.'[U:1:'.$auth.']'.'">'.$name.'</a>'; ?></td>
     					<td><?php echo formattoseconds($time); ?></td>
     					<td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
@@ -399,12 +405,14 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
                     } ?> </table> <?php
                 }
-            } elseif ($top && (USES_RANKINGS == '1')) {
-                $stmt = $connection->prepare('SELECT auth, name, country, lastlogin, points FROM '.MYSQL_PREFIX.'users ORDER BY points DESC LIMIT '.PLAYER_TOP_RANKING_LIMIT.' OFFSET 0;');
+            } 
+			elseif ($top && (USES_RANKINGS == '1')) 
+			{
+                $stmt = $connection->prepare('SELECT auth, name, lastlogin, points FROM '.MYSQL_PREFIX.'users ORDER BY points DESC LIMIT '.PLAYER_TOP_RANKING_LIMIT.' OFFSET 0;');
                 $stmt->execute();
                 $stmt->store_result();
                 $results = ($rows = $stmt->num_rows) > 0;
-                $stmt->bind_result($auth, $name, $country, $lastlogin, $points);
+                $stmt->bind_result($auth, $name, $lastlogin, $points);
 
                 if ($rows > 0) {
                     $first = true;
@@ -421,7 +429,6 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <th>Rank</th>
                             <th>SteamID</th>
                             <th>Name</th>
-                            <th>Country</th>
                             <th>Last Seen</th>
                             <th>Points</th>
                             </thead>
@@ -468,11 +475,10 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             }
                         } ?></td>
                         <td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
-                        <td><?php echo '<a href="index.php?username='.$name.'">'.$name.'</a>'; ?></td>
-                        <td><?php echo $country; ?></td>
-                        <td><?php echo date('Y-m-d H:i:s', $lastlogin); ?></td>
+                        <td><?php echo '<a href="index.php?stype=2&username=' . '[U:1:'.$auth.']' . '">'.$name.'</a>'; ?></td>
+                        <td><?php echo date('d-m-Y H:i:s', $lastlogin); ?></td>
                         <td><?php echo $points; ?></td>
                         </tr>
                         <?php
@@ -482,100 +488,109 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         }
                     } ?> </table> <?php
                 }
-            } elseif ($username) { //search
+            } 
+			elseif ($username) 
+			{ //search
             
-            $authtemp = '';
-            $sid = '';
+				$authtemp = '';
+				$sid = '';
 
-                if ($stype == '0') {
+                if ($stype == '0') 
+				{
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.name LIKE ? ORDER BY date ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE c.name = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.name LIKE ? ORDER BY date ASC;');
                     }
-                } elseif ($stype > '0') { //FORMAT_AUTO can go wrong pretty easily and has its own extension for Exception so that's used here, the blank message on the second try catch is intentional atm
+                } 
+				elseif ($stype > '0') 
+				{ //FORMAT_AUTO can go wrong pretty easily and has its own extension for Exception so that's used here, the blank message on the second try catch is intentional atm
                     if ($stype == '1') {
                         $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID32);
                     } elseif ($stype == '2') {
                         $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID3);
                     } elseif ($stype == '3') {
                         $authtemp = SteamID::Parse($username, SteamID::FORMAT_STEAMID64);
-                    } elseif ($stype == '4') {
-                        try {
-                            $authtemp = SteamID::Parse($username, SteamID::FORMAT_AUTO, true);
-                        } catch (SteamIDResolutionException $e) {
-                            echo 'Caught exception: ', $e->getMessage(), '<br />';
-                        }
-                    }
-                        try {
-                          if ($authtemp == false) { //Parse function for 32/3/64 returns false on failure, AUTO does both
-                                throw new Exception('Unable to parse SteamID, check your search term and try again');
-                            }
-                                $sid = $authtemp->Format(SteamID::FORMAT_STEAMID3);
-                        } catch (Exception $e) {
-                            echo 'Caught exception: ', $e->getMessage(), '<br />';
-                        }
+                    } elseif ($stype == '4') 
+
+					try {
+						$authtemp = SteamID::Parse($username, SteamID::FORMAT_AUTO, true);
+					} catch (SteamIDResolutionException $e) {
+						echo 'Caught exception: ', $e->getMessage(), '<br />';
+					}
+					
+					try {
+						if ($authtemp == false) {
+							throw new Exception('Unable to parse SteamID, check your search term and try again');
+						}
+						
+						$sid = $authtemp->Format(SteamID::FORMAT_STEAMID3);
+						$sid = substr($sid, 5);
+						$sid = rtrim($sid, ']');
+					} 
+					catch (Exception $e) {
+						echo 'Caught exception: ', $e->getMessage(), '<br />';
+					}
 
                     if (USES_RANKINGS == '0') {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT p.id, u.auth, u.name, p.map, p.time, p.jumps, p.strafes, p.sync, p.date, p.style, p.track FROM '.MYSQL_PREFIX.'playertimes p JOIN '.MYSQL_PREFIX.'users u ON p.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
                     } else {
-                        $stmt = $connection->prepare('SELECT a.id, a.auth, c.name, a.map, a.time, a.jumps, a.strafes, a.sync, a.date, a.points, a.style, a.track, COUNT(b.map) + 1 rank 
-                                FROM '.MYSQL_PREFIX.'playertimes a LEFT JOIN '.MYSQL_PREFIX.'playertimes b ON a.time > b.time AND a.map = b.map AND a.style = b.style AND a.track = b.track
-                                JOIN '.MYSQL_PREFIX.'users c ON a.auth = c.auth
-                                WHERE a.auth = ? GROUP BY a.map ORDER BY a.id ASC;');
+                        $stmt = $connection->prepare('SELECT pt.id, u.auth, u.name, pt.map, pt.time, pt.jumps, pt.strafes, pt.sync, pt.date, pt.points, pt.style, pt.track FROM '.MYSQL_PREFIX.'playertimes pt JOIN '.MYSQL_PREFIX.'users u ON pt.auth = u.auth WHERE u.auth = ? ORDER BY date ASC;');
                     }
                 }  
 
                 if ($stype > '0') {
                     $stmt->bind_param('s', $sid);
                 } else {
-                    $stmt->bind_param('s', $username);
+					$param = '%' . $username . '%';
+                    $stmt->bind_param('s', $param);
                 }
 
                 $stmt->execute();
-
                 $stmt->store_result();
-
                 $results = ($rows = $stmt->num_rows) > 0;
 
                 if (USES_RANKINGS == '1') {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track, $rank);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $points, $style, $track);
                 } else {
-                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track, $rank);
+                    $stmt->bind_result($id, $auth, $name, $map, $time, $jumps, $strafes, $sync, $date, $style, $track);
                 }
 
-                if ($rows > 0) {
+                if ($rows > 0) 
+				{
                     $first = true;
 
                     $rank = 1;
 
-                    while ($row = $stmt->fetch()) {
-                        if ($first) {
-                            ?>
-                            <p><span class="mark"><?php echo $name; ?></span> Records (<?php echo number_format($rows); ?>) </p>
-
+                    while ($row = $stmt->fetch()) 
+					{
+                        if ($first)
+						{
+							if($stype > 0)
+							{
+								$sid = $authtemp->Format(SteamID::FORMAT_STEAMID64);
+								$json = file_get_contents('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' .  API_KEY . '&steamids=' . $sid );
+								$result = json_decode($json);
+								$img = $result->response->players[0]->avatarfull;
+								?>
+								
+								<img src="<?php echo $img; ?>"/>
+								<?php 
+							} ?>
+                            <p><span class="mark"><?php echo $username; ?></span> Records (<?php echo number_format($rows); ?>) </p>
+							
                             <table class="table table-striped table-hover">
                             <thead id="ignore"><th>Run ID</th>
                             <th>SteamID</th>
                             <th>Name</th>
                             <th>Map</th>
                             <th>Style / Track</th>
-                            <th>Rank</th>
                             <th>Time</th>
                             <th>Jumps</th>
                             <th>Strafes</th>
                             <th>Sync</th>
                             <th>Points</th>
-                            <th>Date <small>(YYYY-MM-DD)</small></th></thead>
+                            <th>Date <small>(DD-MM-YYYY)</small></th></thead>
 
                             <?php
 
@@ -585,12 +600,19 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         <tr>
                         <td><?php echo $id; ?></td>
                         <td><?php
-                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_STEAMID3);
+                        $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
                         echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
-                        <td><?php echo $name; ?></td>
+                        
+						<?php if($stype == 0)
+						{ ?>
+							<td><?php echo '<a href="index.php?stype=2&username=' . '[U:1:' . $auth . ']' . '">'.$name.'</a>'?></td> 
+						<?php }
+						else 
+						{ ?>
+							<td> <?php echo $name; 
+						}?></td>
                         <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
                         <td><?php echo $styles[$style].' / '.$tracks[$track]; ?></td>
-                        <td><?php echo $rank; ?></td>
                         <td><?php echo formattoseconds($time); ?></td>
                         <td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
@@ -603,7 +625,7 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         <td><?php if ($date[4] == '-') {
                             echo $date;
                         } else {
-                            echo date('Y-m-d H:i:s', $date);
+                            echo date('d-m-Y H:i:s', $date);
                         } ?></td></tr>
                         <?php
 
@@ -626,14 +648,11 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
             }
         }
         ?>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
-</div>
-
-</body>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </body>
 
   <!-- load those lately because it makes the page load faster -->
   <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->

@@ -8,7 +8,7 @@ body {
 	padding-bottom: 20px;
 }
 th,td {
-	text-align:center;
+	text-align: left;
 }
 .btn {
 	outline: none !important;
