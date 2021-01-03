@@ -279,13 +279,11 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             </td>
                             <td><?php
                             $steamid = SteamID::Parse($auth, SteamID::FORMAT_S32);
-                        echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
+							echo '<a href="https://steamcommunity.com/profiles/'.$steamid->Format(SteamID::FORMAT_STEAMID64).'/" target="_blank">'.$auth.'</a>'; ?></td>
 
-        					<td><?php if ($date[4] == '-') {
-                            echo $date;
-                        } else {
-                            echo date('d-m-Y H:i:s', $date);
-                        } ?></td>
+        					<td><?php 
+								echo date('d-m-Y H:i:s', $date);
+							?></td>
                         </tr>
                         
                         <?php
@@ -393,11 +391,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         } else {
                             echo '---';
                         } ?></td>
-                        <td><?php if ($date[4] == '-') {
-                            echo $date;
-                        } else {
-                            echo date('Y-m-d H:i:s', $date);
-                        } ?></td></tr>
+                        <td><?php
+                            echo date('d-m-Y H:i:s', $date);
+                        ?></td></tr>
     					<?php
 
                         if (++$rank > RECORD_LIMIT) {
@@ -569,8 +565,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 							if($stype > 0)
 							{
 								$sid = $authtemp->Format(SteamID::FORMAT_STEAMID64);
-								$json = file_get_contents('http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=' .  API_KEY . '&steamids=' . $sid );
-								$result = json_decode($json);
+								$response = SteamID::Curl("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" .  API_KEY . "&steamids=" . $sid);
+								$result = json_decode($response);
 								$img = $result->response->players[0]->avatarfull;
 								?>
 								
@@ -622,11 +618,9 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                         } else {
                             echo '---';
                         } ?></td>
-                        <td><?php if ($date[4] == '-') {
-                            echo $date;
-                        } else {
-                            echo date('d-m-Y H:i:s', $date);
-                        } ?></td></tr>
+                        <td><?php 
+							echo date('d-m-Y H:i:s', $date);
+                        ?></td></tr>
                         <?php
 
                         if (++$rank > RECORD_LIMIT) {

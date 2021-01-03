@@ -133,7 +133,7 @@ class SteamID {
 	 * @param string $url URL to request.
 	 * @return string|false Contents of result or FALSE if the request failed.
 	 */
-	private static function Curl( $url ) {
+	public static function Curl( $url ) {
 		
 		$ch = curl_init(); 
 		curl_setopt( $ch, CURLOPT_URL, $url );
