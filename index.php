@@ -224,7 +224,6 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 echo $connection->error;
 
                 $stmt->execute();
-
                 $stmt->store_result();
 
                 $results = ($rows = $stmt->num_rows) > 0;
@@ -247,7 +246,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                                 <thead id="ignore">
                                     <th>Map</th>
                                     <th>Name</th>
-                                    <th>Style / Track</th>
+                                    <th>Style</th>
+									<th>Track</th>
                                     <th>Time</th>
                                     <th>Jumps</th>
                                     <th>Strafes</th>
@@ -265,7 +265,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                             <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
         					<td><?php echo '<a href="index.php?stype=2&username=' . '[U:1:' . $auth . ']' . '">'.$name.'</a>'; ?></td>
 							
-        					<td><?php echo $styles[$style].' / '.trackname($track);?></td>
+        					<td><?php echo $styles[$style];?></td>
+							<td><?php echo trackname($track);?></td>
         					<td><?php echo formattoseconds($time); ?></td>
         					<td><?php echo $jumps; ?></td>
                             <td><?php echo $strafes; ?></td>
@@ -564,23 +565,61 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 						{
 							if($stype > 0)
 							{
-								$sid = $authtemp->Format(SteamID::FORMAT_STEAMID64);
-								$response = SteamID::Curl("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" .  API_KEY . "&steamids=" . $sid);
+								$steamid64 = $authtemp->Format(SteamID::FORMAT_STEAMID64);
+								$response = SteamID::Curl("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" .  API_KEY . "&steamids=" . $steamid64);
 								$result = json_decode($response);
 								$img = $result->response->players[0]->avatarfull;
+								$name = $result->response->players[0]->personaname;
+								$steamid32 = $authtemp->Format(SteamID::FORMAT_STEAMID32);
+								
+								$stmt2 = $connection->prepare('SELECT lastlogin, points FROM '.MYSQL_PREFIX.'users WHERE auth = ' . $auth);
+								$stmt2->execute();
+								$stmt2->store_result();
+								$stmt2->bind_result($lastlogin2, $points2);
+								
+								$connection->query('SET @rank:=0');
+								$stmt3 = $connection->prepare('SELECT rank FROM (SELECT @rank:=@rank+1 AS rank, auth FROM '.MYSQL_PREFIX.'users ORDER BY points DESC) A WHERE auth = ' . $auth);
+								$stmt3->execute();
+								$stmt3->bind_result($rank);
 								?>
 								
-								<img src="<?php echo $img; ?>"/>
+								<div class="container-fluid">
+									<div class="col-md-2" style="padding: 10px;">
+										<img src="<?php echo $img; ?>"/>
+									</div>
+									<div class="col-md-8 align-self-center">
+										<table class="table table-striped">
+											<thead>
+												<th>Name</th>
+												<th>SteamID</th>
+												<th>Rank</th>
+												<th>Points</th>
+												<th>Last Seen <small>(DD-MM-YYYY)</small></th>
+											</thead>
+											<td><?php echo $name; ?></td>
+											<td><?php echo $steamid32; ?></td>
+											<?php while ($row = $stmt3->fetch()) { ?>
+												<td><?php echo $rank; ?></td>
+												<?php } ?>
+											<?php while ($row = $stmt2->fetch()) { ?>
+												<td><?php echo $points2; ?></td>
+												<td><?php echo date('d-m-Y H:i:s', $lastlogin2); ?></td>
+											<?php } ?>
+										</table>
+									</div>
+								</div>
 								<?php 
+								$stmt2->close();
+								$stmt3->close();
 							} ?>
-                            <p><span class="mark"><?php echo $username; ?></span> Records (<?php echo number_format($rows); ?>) </p>
 							
                             <table class="table table-striped table-hover">
                             <thead id="ignore"><th>Run ID</th>
                             <th>SteamID</th>
                             <th>Name</th>
                             <th>Map</th>
-                            <th>Style / Track</th>
+                            <th>Style</th>
+							<th>Track</th>
                             <th>Time</th>
                             <th>Jumps</th>
                             <th>Strafes</th>
@@ -608,7 +647,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
 							<td> <?php echo $name; 
 						}?></td>
                         <td><?php echo '<a href="index.php?style='.$style.'&map='.removeworkshop($map).'&track='.$track.'">'.removeworkshop($map).'</a>'; ?></td>
-                        <td><?php echo $styles[$style].' / '.$tracks[$track]; ?></td>
+                        <td><?php echo $styles[$style]; ?></td>
+						<td><?php echo trackname($track); ?></td>
                         <td><?php echo formattoseconds($time); ?></td>
                         <td><?php echo $jumps; ?></td>
                         <td><?php echo $strafes; ?></td>
@@ -641,6 +681,8 @@ if (API_KEY != false) {SteamID::SetSteamAPIKey(API_KEY);}
                 echo '<p>Try another map or style, there may be some records!</p>';}
             }
         }
+		
+		$connection->close();
         ?>
 		  </div>
 		</div>
